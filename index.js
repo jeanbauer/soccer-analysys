@@ -25,8 +25,6 @@ app.get('/SD_Data_:rest', function (req, res) {
       clube: queryParams[1],
     }))
   }
-  // /SD_Data_<periodo>_<clube>_<jogador>
-  // /SD_Data_<periodo>_<clube>
 });
 
 app.listen(3000, function () {
