@@ -18,6 +18,13 @@ app.get('/SD_Data_:rest', function (req, res) {
     }))
   }
 
+  // /SD_Data_<periodo>_<clube>
+  if (queryParams.length === 2) {
+    return res.send(JSON.stringify({
+      periodo: queryParams[0],
+      clube: queryParams[1],
+    }))
+  }
   // /SD_Data_<periodo>_<clube>_<jogador>
   // /SD_Data_<periodo>_<clube>
 });
