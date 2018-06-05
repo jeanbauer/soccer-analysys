@@ -1,0 +1,8 @@
+{
+  "serverName" : "serverTales",
+  "serverIP" : "127.0.0.1",
+  "portListen" : 1111,
+  "memcachedServer" : "10.1.1.1",
+  "memcachedPort" : 11211,
+  "yearData" : [1999, 2000]
+}
