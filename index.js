@@ -8,7 +8,14 @@ app.get('/SD_Data_:rest', function (req, res) {
   if (rest.includes('__')) {
     // /SD_Data_:periodo__:jogador
   }
-
+  // /SD_Data_<periodo>
+  console.log(queryParams.length)
+  if (queryParams.length === 1) {
+    return res.send(JSON.stringify({
+      periodo: queryParams[0],
+    }))
+  }
+  
   // 'SD_Data_:periodo_:clube_:jogador'
   if (queryParams.length === 3) {
     return res.send(JSON.stringify({
