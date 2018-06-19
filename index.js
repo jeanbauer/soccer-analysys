@@ -1,39 +1,38 @@
-var express = require('express');
-var app = express();
+const express = require('express');
+const app = express();
+const fs = require('fs');
+const log = bubbles => console.log("=====>", bubbles);
 
-app.get('/SD_Data_:rest', function (req, res) {
-  const rest = req.params.rest;
-  const queryParams = rest.split('_');
-
-  if (rest.includes('__')) {
-    // /SD_Data_:periodo__:jogador
-  }
-  // /SD_Data_<periodo>
-  console.log(queryParams.length)
-  if (queryParams.length === 1) {
-    return res.send(JSON.stringify({
-      periodo: queryParams[0],
-    }))
-  }
-  
-  // 'SD_Data_:periodo_:clube_:jogador'
-  if (queryParams.length === 3) {
-    return res.send(JSON.stringify({
-      periodo: queryParams[0],
-      clube: queryParams[1],
-      jogador: queryParams[2],
-    }))
+fs.readFile('./config.json', 'utf-8', (error, data) => {
+  if (error) {
+    console.log(`Erro: ${error}`);
+    throw error;
   }
 
-  // /SD_Data_<periodo>_<clube>
-  if (queryParams.length === 2) {
-    return res.send(JSON.stringify({
-      periodo: queryParams[0],
-      clube: queryParams[1],
-    }))
-  }
+  const {
+    serverName,
+    serverIP,
+    portListen,
+    memcachedServer,
+    memcachedPort,
+    yearData
+  } = JSON.parse(data)
+
+  init(portListen);
 });
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!');
-});
+const init = port => {
+  app.listen(port, () => console.log(`⚡️ Aplicação rodando na porta: ${port}! ⚡️`))
+
+  app.get('/getData/:year', (req, res) => {
+    const year = req.params.year;
+    const playerName = req.query.playerName;
+    const clubName = req.query.clubName;
+
+    res.send({
+      year,
+      playerName,
+      clubName,
+    })
+  })
+}
