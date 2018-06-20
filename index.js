@@ -34,5 +34,26 @@ const init = port => {
       playerName,
       clubName,
     })
+
+    const mysql = require('mysql');
+    const connection = mysql.createConnection({
+      host: 'localhost',
+      user: 'me',
+      password: 'secret',
+      database: 'my_db'
+    });
+
+    connection.connect();
+
+    const query = `
+      SELECT * FROM players
+    `;
+
+    connection.query(query, (error, results) => {
+      if (error) throw error;
+      console.log('MYSQL: ', results[0].solution);
+    });
+
+    connection.end();
   })
 }
