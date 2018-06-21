@@ -37,3 +37,24 @@ WHERE \`Player\`.\`player_name\` = '${playerName}'
 `;
 
 module.exports.getPlayerQuery = getPlayerQuery;
+
+
+const getClubQuery = (year, clubName) => `
+SELECT (\`Match\`.\`home_team_goal\` - \`Match\`.\`away_team_goal\`) AS resultado
+FROM \`Team\`
+INNER JOIN \`Match\`
+    on \`Match\`.\`home_team_api_id\` = \`Team\`.\`team_api_id\`
+WHERE \`Team\`.\`team_long_name\` = '${clubName}'
+    and year(\`Match\`.\`date\`) = '${year}'
+    and (\`Match\`.\`home_team_goal\` - \`Match\`.\`away_team_goal\`) <> 0
+UNION ALL
+SELECT (\`Match\`.\`away_team_goal\` - \`Match\`.\`home_team_goal\`) as resultado
+FROM \`Team\`
+INNER JOIN \`Match\`
+    on \`Match\`.\`away_team_api_id\` = \`Team\`.\`team_api_id\`
+WHERE \`Team\`.\`team_long_name\` = '${clubName}'
+    and year(\`Match\`.\`date\`) = '${year}'
+    and (\`Match\`.\`away_team_goal\` - \`Match\`.\`home_team_goal\`) <> 0;
+`
+module.exports.getClubQuery = getClubQuery;
+

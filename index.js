@@ -3,8 +3,8 @@ const fs = require('fs');
 
 const app = express();
 const log = bubbles => console.log("=====>", bubbles);
-const { getPlayerQuery } = require('./queries')
 const { mysql } = require('./mysql')
+const { getPlayerQuery, getPlayerClubQuery } = require('./queries')
 
 fs.readFile('./config.json', 'utf-8', (error, data) => {
   if (error) {
@@ -24,6 +24,15 @@ const init = port => {
   app.get('/getData/:year', (req, res) => {
     const year = req.params.year;
     const playerName = req.query.playerName;
+    const clubName = req.query.clubName;
+
+    if (clubName) {
+      connection.query(getPlayerClubQuery(year, clubName), (error, results) => {
+        if (error) throw error;
+        res.send({ results })
+        connection.end();
+      });
+    }
 
     connection.query(getPlayerQuery(playerName, year), (error, results) => {
       if (error) throw error;
