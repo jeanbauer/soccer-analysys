@@ -25,30 +25,30 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
 const init = port => {
   app.listen(port, () => console.log(`⚡️ Aplicação rodando na porta: ${port}! ⚡️`))
 
+  const mysql = require('mysql');
+  const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'soccer'
+  });
+
+  connection.connect();
+
+  // TODO: Move this logic to a separate directory
   app.get('/getData/:year', (req, res) => {
     const year = req.params.year;
     const playerName = req.query.playerName;
-    const clubName = req.query.clubName;
 
-    const mysql = require('mysql');
-    const connection = mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'soccer'
-    });
-
-    connection.connect();
-
-    connection.query(getPlayerQuery(playerName, 2010), (error, results) => {
+    connection.query(getPlayerQuery(playerName, year), (error, results) => {
       if (error) throw error;
       log('MYSQL: ', results[0]);
 
       res.send({
         results
       })
-    });
 
-    connection.end();
+      connection.end();
+    });
   })
 }

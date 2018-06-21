@@ -2,6 +2,14 @@
 
 ---
 
+# Como rodar:
+- instalar node
+- node index.js
+- entre em: http://localhost:1111
+- endpoint jogador: `/getData/2010?playerName=Lionel+Messi`
+- endpoint clube: `/getData/2010?clubName=Real+Madrid`
+- endpoint clube + jogador: `/getData/2010?clubName=Barcelona&playerName=Neymar+Jr`
+
 # Dados de entrega
 * Data: 26/06/2016
 * Peso: 10 pontos da nota de G2
