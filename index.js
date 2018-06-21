@@ -1,8 +1,10 @@
 const express = require('express');
-const app = express();
 const fs = require('fs');
+
+const app = express();
 const log = bubbles => console.log("=====>", bubbles);
 const { getPlayerQuery } = require('./queries')
+const { mysql } = require('./mysql')
 
 fs.readFile('./config.json', 'utf-8', (error, data) => {
   if (error) {
@@ -10,30 +12,13 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
     throw error;
   }
 
-  const {
-    serverName,
-    serverIP,
-    portListen,
-    memcachedServer,
-    memcachedPort,
-    yearData
-  } = JSON.parse(data)
-
+  const { serverName, serverIP, portListen, memcachedServer, memcachedPort, yearData } = JSON.parse(data)
   init(portListen);
 });
 
 const init = port => {
   app.listen(port, () => console.log(`⚡️ Aplicação rodando na porta: ${port}! ⚡️`))
-
-  const mysql = require('mysql');
-  const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'soccer'
-  });
-
-  connection.connect();
+  const connection = mysql();
 
   // TODO: Move this logic to a separate directory
   app.get('/getData/:year', (req, res) => {
@@ -42,12 +27,7 @@ const init = port => {
 
     connection.query(getPlayerQuery(playerName, year), (error, results) => {
       if (error) throw error;
-      log('MYSQL: ', results[0]);
-
-      res.send({
-        results
-      })
-
+      res.send({ results })
       connection.end();
     });
   })
