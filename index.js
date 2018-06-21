@@ -39,5 +39,7 @@ const init = port => {
       res.send({ results })
       connection.end();
     });
+
+    // TODO: Adicionar rota jogador + clube
   })
 }
