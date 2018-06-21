@@ -10,6 +10,35 @@
 - endpoint clube: `/getData/2010?clubName=Real+Madrid`
 - endpoint clube + jogador: `/getData/2010?clubName=Barcelona&playerName=Neymar+Jr`
 
+# TODO:
+- Arrumar filtro por mes e dia
+```
+  - período que deseja pesquisar em um dos seguintes formatos (obrigatório):
+    - YYYY -> (ex: 2015) Ano. Mostra todos os gastos durante o ano especificado
+    - YYYYMM -> (ex: 201501) Mês. Mostra todos os gastos durante o ano/mês especificado
+    - YYYYMMDD -> (ex: 20150101) Dia. Mostra todos os gastos durante o ano/mês/dia especificado
+```
+- Adicionar memcache
+- Adicionar tratamento de erro
+```
+No caso de alguma requisição ocorrer erro, deve ser retornado retornado o código HTTP 417 com um JSON no seguinte formato:
+{
+    "errorCode": 123,
+    "errorDescription": "Descricao do erro"
+}
+```
+
+Código  | Descrição              | Usado quando
+------- | ---------------------- | ------------
+1       | Servidor Indisponível  | Quando o servidor que possui o dado está indisponívei
+2       | Dados Inexistentes     | Quando os dados para a busca desejada não existem
+
+- Adicionar rota de /getAvailabeYears
+> Retorna a lista com todos os anos disponíveis para consulta dentro do sistema distribuídoindependente de qual processo é responsável por cada ano.
+- Adicionar testes unitários
+
+
+
 # Dados de entrega
 * Data: 26/06/2016
 * Peso: 10 pontos da nota de G2
@@ -185,19 +214,3 @@ Exemplos:
     "losses": 456,
 }
 ```
-
-## Erros
-
-No caso de alguma requisição ocorrer erro, deve ser retornado retornado o código HTTP 417 com um JSON no seguinte formato:
-```json
-{
-    "errorCode": 123,
-    "errorDescription": "Descricao do erro"
-}
-```
-
-
-Código  | Descrição              | Usado quando
-------- | ---------------------- | ------------
-1       | Servidor Indisponível  | Quando o servidor que possui o dado está indisponívei
-2       | Dados Inexistentes     | Quando os dados para a busca desejada não existem
