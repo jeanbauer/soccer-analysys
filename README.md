@@ -11,13 +11,6 @@
 - endpoint clube + jogador: `/getData/2010?clubName=Barcelona&playerName=Neymar+Jr`
 
 # TODO:
-- Arrumar filtro por mes e dia
-```
-  - período que deseja pesquisar em um dos seguintes formatos (obrigatório):
-    - YYYY -> (ex: 2015) Ano. Mostra todos os gastos durante o ano especificado
-    - YYYYMM -> (ex: 201501) Mês. Mostra todos os gastos durante o ano/mês especificado
-    - YYYYMMDD -> (ex: 20150101) Dia. Mostra todos os gastos durante o ano/mês/dia especificado
-```
 - Adicionar memcache
 - Adicionar tratamento de erro
 ```
