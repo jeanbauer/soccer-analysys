@@ -38,9 +38,13 @@ const init = port => {
     console.time("DB response time")
     connection.query(getPlayerId(playerName), (error, player) => {
 
-      if (!player[0]) return res.status(417).send(notFound)
+      if (!player[0] || error) return res.status(417).send(notFound)
 
       const playerApiId = player[0].player_api_id;
+
+
+      console.log(getPlayerQuery(playerApiId, year))
+
 
       connection.query(getPlayerQuery(playerApiId, year), (error, results) => {
         if (error) throw error;
