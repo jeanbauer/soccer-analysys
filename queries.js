@@ -11,7 +11,7 @@ const getPlayerQuery = (playerName, year) => `
   SELECT *
   FROM \`match\`
   WHERE year(\`match\`.\`date\`) = ${year}
-  AND ${select(playerName)}
+  AND (${select(playerName)})
 `;
 
 const getPlayerId = playerName => `

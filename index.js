@@ -42,10 +42,6 @@ const init = port => {
 
       const playerApiId = player[0].player_api_id;
 
-
-      console.log(getPlayerQuery(playerApiId, year))
-
-
       connection.query(getPlayerQuery(playerApiId, year), (error, results) => {
         if (error) throw error;
         console.timeEnd("DB response time")
