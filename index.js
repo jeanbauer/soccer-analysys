@@ -3,8 +3,9 @@ const fs = require('fs');
 
 const app = express();
 const log = bubbles => console.log("=====>", bubbles);
+
 const { mysql } = require('./mysql')
-const { getPlayerQuery, getPlayerId, getPlayerClubQuery } = require('./queries')
+const { getPlayerQuery, getTeamId, getPlayerId, getClubQuery, getPlayerClubQuery } = require('./queries')
 const { notFound, serverUnavailable } = require('./error')
 
 fs.readFile('./config.json', 'utf-8', (error, data) => {
@@ -28,19 +29,39 @@ const init = port => {
     const clubName = req.query.clubName;
 
     if (clubName) {
-      connection.query(getPlayerClubQuery(year, clubName), (error, results) => {
-        if (error) throw error;
-        res.send({ results })
-        connection.end();
-      });
+      console.time("DB response time")
+       connection.query(getTeamId(clubName), (error, id) => {
+        if (!id[0] || error) return res.status(417).send(notFound)
+        const teamApiId = id[0].team_api_id;
+
+        console.time("DB response time 1")
+
+        connection.query(getClubQuery(teamApiId, year), (error, matches) => {
+          if (error) throw error;
+
+          let win = 0, losses = 0
+
+          matches.map(match => {
+            const score = match['home_team_goal'] - match['away_team_goal']
+            if (match.home_team_api_id === teamApiId) score > 0 ? win++ : losses++
+            else score < 0 ? win++ : losses++
+          })
+
+          return res.send({ win, losses })
+        });
+
+        console.timeEnd("DB response time 1")
+      })
+      console.timeEnd("DB response time")
+      return
     }
 
     console.time("DB response time")
-    connection.query(getPlayerId(playerName), (error, player) => {
+    connection.query(getPlayerId(playerName), (error, id) => {
 
-      if (!player[0] || error) return res.status(417).send(notFound)
+      if (!id[0] || error) return res.status(417).send(notFound)
 
-      const playerApiId = player[0].player_api_id;
+      const playerApiId = id[0].player_api_id;
 
       connection.query(getPlayerQuery(playerApiId, year), (error, results) => {
         if (error) throw error;
@@ -65,7 +86,7 @@ const init = port => {
         })
         console.timeEnd("Javascript processing time")
 
-        res.send({ win, losses })
+        return res.send({ win, losses })
       });
     })
   })
