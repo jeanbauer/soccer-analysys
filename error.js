@@ -3,5 +3,5 @@ const errorMessageBuilder = (code, message) => ({
   errorDescription: message
 })
 
-exports.serverUnavailable = errorMessageBuilder(2, "Servidor Indisponível");
+exports.serverUnavailable = errorMessageBuilder(1, "Servidor Indisponível");
 exports.notFound = errorMessageBuilder(2, "Dados Inexistentes");
