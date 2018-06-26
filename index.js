@@ -103,10 +103,14 @@ const init = port => {
         const servers = JSON.parse(data).servers;
         const s = servers.filter(s => s.year.indexOf(year) >= 0)
 
-        axios.get(s.location)
+        axios.get(`${s.location}/getData/${year}?playerName=${playerName}&clubName=${clubName}`)
           .then(response => {
             if (response.errorCode && response.errorCode == "2" || response.errorCode == 2) {
                return res.send(notFound)
+            }
+
+            if (response.errorCode && response.errorCode == "1" || response.errorCode == 1) {
+              return res.send(serverUnavailable)
             }
 
             return res.send(response)
