@@ -7,6 +7,15 @@ const select = (playerId) => {
   return statement
 }
 
+const selectPlayerByIdAndSide = (playerId, side = 'home') => {
+  let statement = ''
+  for(i = 1; i <= 11; i++) {
+    statement += `${side}_player_${i} = ${playerId}`
+    if (i != 11) statement += ' OR '
+  }
+  return statement
+}
+
 const getPlayerQuery = (playerId, year) => `
   SELECT *
   FROM \`match\`
@@ -38,8 +47,8 @@ const getPlayerClubQuery = (clubId, playerId, year) => `
   SELECT *
   FROM \`match\`
   WHERE year(\`match\`.\`date\`) = ${year}
-  AND (home_team_api_id = ${clubId} || away_team_api_id = ${clubId})
-  AND (${select(playerId)})
+  AND ((home_team_api_id = ${clubId} && ${selectPlayerByIdAndSide(playerId, 'home')})
+  OR (away_team_api_id = ${clubId} && ${selectPlayerByIdAndSide(playerId, 'away')}))
 `;
 
 exports.getPlayerClubQuery = getPlayerClubQuery;
