@@ -8,6 +8,24 @@ const { mysql } = require('./mysql')
 const { getPlayerQuery, getTeamId, getPlayerId, getClubQuery, getPlayerClubQuery } = require('./queries')
 const { notFound, serverUnavailable } = require('./error')
 
+const getMatchesResults = (results, attr, playerApiId) => {
+  let win = 0, losses = 0
+  results.map(r => {
+    attr.forEach(a => {
+      if (r[a] == playerApiId) {
+        const score = r['home_team_goal'] - r['away_team_goal']
+
+        if (a.indexOf('home') >= 0) { score > 0 ? win++ : losses++ }
+        if (a.indexOf('away') >= 0) { score < 0 ? win++ : losses++ }
+
+        return
+      }
+    })
+  })
+
+  return { win, losses }
+}
+
 fs.readFile('./config.json', 'utf-8', (error, data) => {
   if (error) {
     console.log(`Erro: ${error}`);
@@ -30,15 +48,17 @@ const init = port => {
 
     if (clubName && playerName) {
       return connection.query(getTeamId(clubName), (error, clubId) => {
-        if (!clubId[0] || error) return res.status(417).send(notFound)
-        const clubApiId = id[0].team_api_id;
+        if (!clubId[0] || error) return res.status(417).send({ error: 'erro' })
+        const clubApiId = clubId[0].team_api_id;
 
         connection.query(getPlayerId(playerName), (error, playerId) => {
           if (!playerId[0] || error) return res.status(417).send(notFound)
-          const playerApiId = id[0].player_api_id;
+          const playerApiId = playerId[0].player_api_id;
 
           connection.query(getPlayerClubQuery(clubApiId, playerApiId, year), (error, matches) => {
-            return res.send({ matches })
+            const keys = Object.keys(matches[0])
+            res.send(getMatchesResults(matches, keys, playerApiId))
+            return
           })
         })
       })
@@ -56,7 +76,6 @@ const init = port => {
           if (error) throw error;
 
           let win = 0, losses = 0
-
           matches.map(match => {
             const score = match['home_team_goal'] - match['away_team_goal']
             if (match.home_team_api_id === teamApiId) score > 0 ? win++ : losses++
@@ -79,30 +98,14 @@ const init = port => {
 
       const playerApiId = id[0].player_api_id;
 
-      connection.query(getPlayerQuery(playerApiId, year), (error, results) => {
+      connection.query(getPlayerQuery(playerApiId, year), (error, matches) => {
         if (error) throw error;
         console.timeEnd("DB response time")
-
-        const attr = Object.keys(results[0])
-        let win = 0
-        let losses = 0
-
+        const keys = Object.keys(matches[0])
         console.time("Javascript processing time")
-        results.map(r => {
-          attr.forEach(a => {
-            if (r[a] == playerApiId) {
-              const score = r['home_team_goal'] - r['away_team_goal']
-
-              if (a.indexOf('home') >= 0) { score > 0 ? win++ : losses++ }
-              if (a.indexOf('away') >= 0) { score < 0 ? win++ : losses++ }
-
-              return
-            }
-          })
-        })
+        res.send(getMatchesResults(matches, keys, playerApiId))
         console.timeEnd("Javascript processing time")
-
-        return res.send({ win, losses })
+        return
       });
     })
   })
