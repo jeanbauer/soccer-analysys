@@ -3,7 +3,11 @@
 ---
 
 # Como rodar:
-- instalar node
+- instalar node (node.org)
+- instalar mysql ()
+  - criar uma base dentro do mysql local (localhost) com nome de `soccer`, criar um usuario `root` com password vazio, ou seja, `''`
+- depois, entrar na pasta onde se encontra o projeto:
+- npm install
 - node index.js
 - entre em: http://localhost:1111
 - endpoint jogador: `/getData/2010?playerName=Lionel+Messi`
@@ -12,24 +16,6 @@
 
 # TODO:
 - Adicionar memcache
-- Adicionar tratamento de erro
-```
-No caso de alguma requisição ocorrer erro, deve ser retornado retornado o código HTTP 417 com um JSON no seguinte formato:
-{
-    "errorCode": 123,
-    "errorDescription": "Descricao do erro"
-}
-```
-
-Código  | Descrição              | Usado quando
-------- | ---------------------- | ------------
-1       | Servidor Indisponível  | Quando o servidor que possui o dado está indisponívei
-2       | Dados Inexistentes     | Quando os dados para a busca desejada não existem
-
-- Adicionar rota de /getAvailabeYears
-> Retorna a lista com todos os anos disponíveis para consulta dentro do sistema distribuídoindependente de qual processo é responsável por cada ano.
-- Adicionar testes unitários
-
 
 
 # Dados de entrega
@@ -176,9 +162,6 @@ Toda a comunicação entre cliente e servidor deve ser feita via HTTP, utilizand
     "years": [ 1999, 2000, 2001, 2002]
 }
 ```
-
-## Busca dos dados
-* Busca dos dados por período, período/aeroporto ou período/aeroporto/companhia aérea
 
 ### Requisição
 ```

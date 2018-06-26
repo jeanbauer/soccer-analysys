@@ -8,10 +8,10 @@ const { mysql } = require('./mysql')
 const { getPlayerQuery, getTeamId, getPlayerId, getClubQuery, getPlayerClubQuery } = require('./queries')
 const { notFound, serverUnavailable } = require('./error')
 
-const getMatchesResults = (results, attr, playerApiId) => {
+const getMatchesResults = (results, keys, playerApiId) => {
   let win = 0, losses = 0
   results.map(r => {
-    attr.forEach(a => {
+    keys.forEach(a => {
       if (r[a] == playerApiId) {
         const score = r['home_team_goal'] - r['away_team_goal']
 
