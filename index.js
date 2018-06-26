@@ -7,6 +7,7 @@ const log = bubbles => console.log("=====>", bubbles);
 const { mysql } = require('./mysql')
 const { getPlayerQuery, getTeamId, getPlayerId, getClubQuery, getPlayerClubQuery } = require('./queries')
 const { notFound, serverUnavailable } = require('./error')
+let config = {}
 
 const getMatchesResults = (results, keys, playerApiId) => {
   let win = 0, losses = 0
@@ -33,12 +34,17 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
   }
 
   const { serverName, serverIP, portListen, memcachedServer, memcachedPort, yearData } = JSON.parse(data)
+  config = JSON.parse(data)
   init(portListen);
 });
 
 const init = port => {
   app.listen(port, () => console.log(`⚡️ Aplicação rodando na porta: ${port}! ⚡️`))
   const connection = mysql();
+
+  app.get('/getAvailabeYears', (req, res) => {
+    return res.send({ years: config.yearData });
+  })
 
   // TODO: Move this logic to a separate directory
   app.get('/getData/:year', async (req, res) => {
@@ -48,7 +54,7 @@ const init = port => {
 
     if (clubName && playerName) {
       return connection.query(getTeamId(clubName), (error, clubId) => {
-        if (!clubId[0] || error) return res.status(417).send({ error: 'erro' })
+        if (!clubId[0] || error) return res.status(417).send(notFound)
         const clubApiId = clubId[0].team_api_id;
 
         connection.query(getPlayerId(playerName), (error, playerId) => {
@@ -108,5 +114,10 @@ const init = port => {
         return
       });
     })
+  })
+
+  // 404, testar
+  app.get('/*', (req, res) => {
+    return res.status(417).send(serverUnavailable)
   })
 }
