@@ -65,7 +65,7 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
 
   memcached.gets('SD_ListServers', (err, data) => {
     if (err) console.log('memcached err', err)
-  
+
     const servers = JSON.parse(data.SD_ListServers).servers;
     const myServer = servers.find(s => s.name === serverName)
 
@@ -81,7 +81,7 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
     const json = {
       "SD_ListServer": JSON.stringify(servers)
     }
-    
+
     if (!myServer) {
       memcached.set('SD_ListServers', json, (err) => {
         if (err) console.log('memcached err', err)
@@ -176,24 +176,27 @@ const init = port => {
       return
     }
 
-    console.time("DB response time")
-    connection.query(getPlayerId(playerName), (error, id) => {
-      console.log(id)
-      if (!id[0] || error) return res.status(417).send(notFound)
-      const playerApiId = id[0].player_api_id;
+    if (yearData.indexOf(parseInt(year)) >= 0) {
+      console.time("DB response time")
+      connection.query(getPlayerId(playerName), (error, id) => {
+        console.log(id)
+        if (!id[0] || error) return res.status(417).send(notFound)
+        const playerApiId = id[0].player_api_id;
 
-      connection.query(getPlayerQuery(playerApiId, year), (error, matches) => {
-        if (error) throw error;
-        if (!matches[0]) return res.status(417).send(notFound)
+        connection.query(getPlayerQuery(playerApiId, year), (error, matches) => {
+          if (error) throw error;
+          if (!matches[0]) return res.status(417).send(notFound)
 
-        console.timeEnd("DB response time")
-        const keys = Object.keys(matches[0])
-        console.time("Javascript processing time")
-        res.send(getMatchesResults(matches, keys, playerApiId))
-        console.timeEnd("Javascript processing time")
-        return
-      });
-    })
+          console.timeEnd("DB response time")
+          const keys = Object.keys(matches[0])
+          console.time("Javascript processing time")
+
+          res.send(getMatchesResults(matches, keys, playerApiId))
+          console.timeEnd("Javascript processing time")
+          return
+        });
+      })
+    }
   })
 
   // 404, testar
