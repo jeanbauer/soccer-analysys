@@ -1,8 +1,8 @@
 {
-  "serverName" : "serverTales",
+  "serverName" : "serverDiegoJean",
   "serverIP" : "127.0.0.1",
-  "portListen" : 1111,
-  "memcachedServer" : "17.30.19.171",
+  "portListen" : 3330,
+  "memcachedServer" : "172.23.5.5",
   "memcachedPort" : 11211,
   "yearData" : [2015, 2016]
 }
