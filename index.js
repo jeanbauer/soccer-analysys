@@ -46,7 +46,7 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
   memcachedServer = argv[3]
   memcachedPort = argv[4]
   yearData = argv[5] && argv[5].split(",")
-  timeToLive = argv[6] || 60
+  timeToLive = argv[6] || 6000000000000
 
   if (serverName && serverIP && portListen && memcachedServer && memcachedPort && yearData) {
     log('Parametros de inicialização foram passados via terminal com sucesso!')
@@ -65,7 +65,8 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
 
   memcached.gets('SD_ListServers', (err, data) => {
     if (err) console.log('memcached err', err)
-    const servers = JSON.parse(data).servers;
+  
+    const servers = JSON.parse(data.SD_ListServers).servers;
     const myServer = servers.find(s => s.name === serverName)
 
     servers.push({
@@ -75,8 +76,14 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
       active: true
     })
 
+    console.log(servers)
+
+    const json = {
+      "SD_ListServer": JSON.stringify(servers)
+    }
+    
     if (!myServer) {
-      memcached.set('SD_ListServers', JSON.stringify(servers), timeToLive, (err) => {
+      memcached.set('SD_ListServers', json, (err) => {
         if (err) console.log('memcached err', err)
       });
     }
@@ -98,12 +105,12 @@ const init = port => {
     if (!year) return res.status(417).send(notFound)
 
     if (yearData.indexOf(parseInt(year)) === -1) {
-      memcached.gets('SD_ListServers', (err, data) => {
+     memcached.gets('SD_ListServers', (err, data) => {
         if (err) console.log('memcached err', err)
-        const servers = JSON.parse(data).servers;
+        const servers = JSON.parse(data.SD_ListServers).servers;
         const s = servers.filter(s => s.year.indexOf(year) >= 0)
 
-        axios.get(`${s.location}/getData/${year}?playerName=${playerName}&clubName=${clubName}`)
+        return axios.get(`${s.location}/getData/${year}?playerName=${playerName}&clubName=${clubName}`)
           .then(response => {
             if (response.errorCode && response.errorCode == "2" || response.errorCode == 2) {
                return res.send(notFound)
