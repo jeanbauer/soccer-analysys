@@ -2,7 +2,7 @@
   "serverName" : "serverTales",
   "serverIP" : "127.0.0.1",
   "portListen" : 1111,
-  "memcachedServer" : "10.1.1.1",
+  "memcachedServer" : "17.30.19.171",
   "memcachedPort" : 11211,
-  "yearData" : [1999, 2000]
+  "yearData" : [2015, 2016]
 }

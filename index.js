@@ -1,5 +1,6 @@
 const express = require('express');
 const fs = require('fs');
+const axios = require('axios');
 
 const app = express();
 const log = bubbles => console.log("=====>", bubbles);
@@ -7,11 +8,12 @@ const log = bubbles => console.log("=====>", bubbles);
 const { mysql } = require('./mysql')
 const Memcached = require('memcached');
 
+const { sd_listservers } = require ('./memcached.config.js')
 const { getPlayerQuery, getTeamId, getPlayerId, getClubQuery, getPlayerClubQuery } = require('./queries')
 const { notFound, serverUnavailable } = require('./error')
 let config = {}
 let memcached
-let serverName, serverIP, portListen, memcachedServer, memcachedPort, yearData
+let serverName, serverIP, portListen, memcachedServer, memcachedPort, yearData, timeToLive
 
 const getMatchesResults = (results, keys, playerApiId) => {
   let win = 0, losses = 0
@@ -37,7 +39,6 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
     throw error;
   }
 
-  // node index.js jean 127.0.0.1 1111 10.1.1.1 11211 1999,2000
   const argv = process.argv.slice(2);
   serverName = argv[0]
   serverIP = argv[1]
@@ -45,6 +46,7 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
   memcachedServer = argv[3]
   memcachedPort = argv[4]
   yearData = argv[5] && argv[5].split(",")
+  timeToLive = argv[6] || 60
 
   if (serverName && serverIP && portListen && memcachedServer && memcachedPort && yearData) {
     log('Parametros de inicialização foram passados via terminal com sucesso!')
@@ -58,24 +60,62 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
     yearData = configFile.yearData
   }
 
-  console.log(serverName, serverIP, portListen, memcachedServer, memcachedPort, yearData)
   init(portListen);
   memcached = new Memcached(`${memcachedServer}:${memcachedPort}`);
+
+  memcached.gets('SD_ListServers', (err, data) => {
+    if (err) console.log('memcached err', err)
+    const servers = JSON.parse(data).servers;
+    const myServer = servers.find(s => s.name === serverName)
+
+    servers.push({
+      name: serverName,
+      location: `${serverIP}:${portListen}`,
+      year: yearData,
+      active: true
+    })
+
+    if (!myServer) {
+      memcached.set('SD_ListServers', JSON.stringify(servers), timeToLive, (err) => {
+        if (err) console.log('memcached err', err)
+      });
+    }
+  });
 });
 
 const init = port => {
   app.listen(port, () => console.log(`⚡️ Aplicação rodando na porta: ${port}! ⚡️`))
   const connection = mysql();
 
-  app.get('/getAvailabeYears', (req, res) => {
-    return res.send({ years: config.yearData });
-  })
+  app.get('/getAvailabeYears', (req, res) => res.send({ years: yearData }));
 
   // TODO: Move this logic to a separate directory
   app.get('/getData/:year', async (req, res) => {
     const year = req.params.year;
-    const playerName = req.query.playerName;
-    const clubName = req.query.clubName;
+    const playerName = req.query.playerName || false;
+    const clubName = req.query.clubName || false;
+
+    if (!year) return res.status(417).send(notFound)
+
+    if (yearData.indexOf(parseInt(year)) === -1) {
+      memcached.gets('SD_ListServers', (err, data) => {
+        if (err) console.log('memcached err', err)
+        const servers = JSON.parse(data).servers;
+        const s = servers.filter(s => s.year.indexOf(year) >= 0)
+
+        axios.get(s.location)
+          .then(response => {
+            if (response.errorCode && response.errorCode == "2" || response.errorCode == 2) {
+               return res.send(notFound)
+            }
+
+            return res.send(response)
+          })
+          .catch(error => {
+             return res.send(serverUnavailable)
+          });
+      })
+    }
 
     if (clubName && playerName) {
       return connection.query(getTeamId(clubName), (error, clubId) => {
@@ -87,6 +127,8 @@ const init = port => {
           const playerApiId = playerId[0].player_api_id;
 
           connection.query(getPlayerClubQuery(clubApiId, playerApiId, year), (error, matches) => {
+            if (!matches[0]) return res.status(417).send(notFound)
+
             const keys = Object.keys(matches[0])
             res.send(getMatchesResults(matches, keys, playerApiId))
             return
@@ -105,6 +147,7 @@ const init = port => {
 
         connection.query(getClubQuery(teamApiId, year), (error, matches) => {
           if (error) throw error;
+          if (!matches[0]) return res.status(417).send(notFound)
 
           let win = 0, losses = 0
           matches.map(match => {
@@ -124,13 +167,14 @@ const init = port => {
 
     console.time("DB response time")
     connection.query(getPlayerId(playerName), (error, id) => {
-
+      console.log(id)
       if (!id[0] || error) return res.status(417).send(notFound)
-
       const playerApiId = id[0].player_api_id;
 
       connection.query(getPlayerQuery(playerApiId, year), (error, matches) => {
         if (error) throw error;
+        if (!matches[0]) return res.status(417).send(notFound)
+
         console.timeEnd("DB response time")
         const keys = Object.keys(matches[0])
         console.time("Javascript processing time")
