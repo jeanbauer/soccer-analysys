@@ -76,11 +76,7 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
       active: true
     })
 
-    console.log(servers)
-
-    const json = {
-      "SD_ListServer": JSON.stringify(servers)
-    }
+    const json = { "SD_ListServer": JSON.stringify(servers) }
 
     if (!myServer) {
       memcached.set('SD_ListServers', json, (err) => {
@@ -89,6 +85,21 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
     }
   });
 });
+
+const makeServerUnavailable = (s) => {
+  memcached.gets('SD_ListServers', (err, data) => {
+    const servers = JSON.parse(data.SD_ListServers).servers;
+    servers.forEach(se => {
+      if (se.serverName == s.serverName) se.active = false
+    })
+
+    const json = { "SD_ListServer": JSON.stringify(servers) }
+
+    memcached.set('SD_ListServers', json, (err) => {
+      if (err) console.log('memcached err', err)
+    });
+  })
+}
 
 const init = port => {
   app.listen(port, () => console.log(`⚡️ Aplicação rodando na porta: ${port}! ⚡️`))
@@ -117,12 +128,14 @@ const init = port => {
             }
 
             if (response.errorCode && response.errorCode == "1" || response.errorCode == 1) {
+              makeServerUnavailable(s)
               return res.send(serverUnavailable)
             }
 
             return res.send(response)
           })
           .catch(error => {
+             makeServerUnavailable(s)
              return res.send(serverUnavailable)
           });
       })
