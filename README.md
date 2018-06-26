@@ -8,6 +8,7 @@
   - criar uma base dentro do mysql local (localhost) com nome de `soccer`, criar um usuario `root` com password vazio, ou seja, `''`
 - depois, entrar na pasta onde se encontra o projeto:
 - npm install
+  - para rodar com parametros personalizados (vide years): `node index.js <PARAMETRO>=<VALOR> ...` ex.:
 - node index.js
 - entre em: http://localhost:1111
 - endpoint jogador: `/getData/2010?playerName=Lionel+Messi`

@@ -5,9 +5,13 @@ const app = express();
 const log = bubbles => console.log("=====>", bubbles);
 
 const { mysql } = require('./mysql')
+const Memcached = require('memcached');
+
 const { getPlayerQuery, getTeamId, getPlayerId, getClubQuery, getPlayerClubQuery } = require('./queries')
 const { notFound, serverUnavailable } = require('./error')
 let config = {}
+let memcached
+let serverName, serverIP, portListen, memcachedServer, memcachedPort, yearData
 
 const getMatchesResults = (results, keys, playerApiId) => {
   let win = 0, losses = 0
@@ -33,9 +37,30 @@ fs.readFile('./config.json', 'utf-8', (error, data) => {
     throw error;
   }
 
-  const { serverName, serverIP, portListen, memcachedServer, memcachedPort, yearData } = JSON.parse(data)
-  config = JSON.parse(data)
+  // node index.js jean 127.0.0.1 1111 10.1.1.1 11211 1999,2000
+  const argv = process.argv.slice(2);
+  serverName = argv[0]
+  serverIP = argv[1]
+  portListen = argv[2]
+  memcachedServer = argv[3]
+  memcachedPort = argv[4]
+  yearData = argv[5] && argv[5].split(",")
+
+  if (serverName && serverIP && portListen && memcachedServer && memcachedPort && yearData) {
+    log('Parametros de inicialização foram passados via terminal com sucesso!')
+  } else {
+    const configFile = JSON.parse(data)
+    serverName = configFile.serverName
+    serverIP = configFile.serverIP
+    portListen = configFile.portListen
+    memcachedServer = configFile.memcachedServer
+    memcachedPort = configFile.memcachedPort
+    yearData = configFile.yearData
+  }
+
+  console.log(serverName, serverIP, portListen, memcachedServer, memcachedPort, yearData)
   init(portListen);
+  memcached = new Memcached(`${memcachedServer}:${memcachedPort}`);
 });
 
 const init = port => {
