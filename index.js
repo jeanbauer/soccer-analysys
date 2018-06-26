@@ -28,6 +28,22 @@ const init = port => {
     const playerName = req.query.playerName;
     const clubName = req.query.clubName;
 
+    if (clubName && playerName) {
+      return connection.query(getTeamId(clubName), (error, clubId) => {
+        if (!clubId[0] || error) return res.status(417).send(notFound)
+        const clubApiId = id[0].team_api_id;
+
+        connection.query(getPlayerId(playerName), (error, playerId) => {
+          if (!playerId[0] || error) return res.status(417).send(notFound)
+          const playerApiId = id[0].player_api_id;
+
+          connection.query(getPlayerClubQuery(clubApiId, playerApiId, year), (error, matches) => {
+            return res.send({ matches })
+          })
+        })
+      })
+    }
+
     if (clubName) {
       console.time("DB response time")
        connection.query(getTeamId(clubName), (error, id) => {
